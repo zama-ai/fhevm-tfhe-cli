@@ -1,0 +1,58 @@
+name: Publish zbc-fhe tool
+
+on: 
+  workflow_dispatch:
+    inputs:
+      zbc_fhe_tool_tag:
+        description: 'Zbc-fhe tool docker image tag (default: latest)'
+        default: 'latest'
+        type: string
+        required: true
+      ref_to_build_zbc_fhe:
+        description: 'Branch, tag or commit SHA1 to checkout Zbc-fhe (build)'
+        required: true
+        default: "main"
+        type: string
+
+env:
+  DOCKER_IMAGE: ghcr.io/zama-ai/zbc-fhe-tool
+  
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to GitHub Container Registry
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out zbc-fhe-tool
+        uses: actions/checkout@v3
+        with:
+          repository: zama-ai/zbc-fhe-tool
+          ref: ${{ inputs.ref_to_build_zbc_fhe }}
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      
+      - name: Check OS
+        run: |
+          lscpu
+          uname -r
+          lsb_release -a
+
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}:${{ inputs.zbc_fhe_tool_tag }},${{ env.DOCKER_IMAGE }}:latest
+          labels: zbc-fhe-tool
