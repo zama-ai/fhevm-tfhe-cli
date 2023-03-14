@@ -1,7 +1,6 @@
 version: "3.8"
 services:
   app:
-    build: .
-    image: zbc-tool
+    image: ghcr.io/zama-ai/zbc-fhe-tool:0.1.1
     volumes:
       - .:/usr/local/app/
