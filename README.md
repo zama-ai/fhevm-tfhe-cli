@@ -5,7 +5,42 @@ This repository allows developers to use __tfhe-rs__ features through a user fri
 This tool could be used locally or through a docker image. 
 
 
-Examples are available in examples folder and a CLI tool called __zbc-fhe__ is ready-to-use (need to be completed)
+
+## Using the published image (easiest way)
+
+One need to docker login to ghcr.io to download the published image.
+
+<br />
+<details>
+  <summary>How to login into Zama github packages</summary>
+<br />
+The first step is to create a PAT (Personnal Access token) in github developer settings with 
+a read access to Zama github registry. 
+
+Then execute docker login ghcr.io with your github account name and the newly created PAT.
+</details>
+<br />
+
+The following command mount the current directory in order to persist the created files as keys or ciphertext.
+Keys are generated in res/keys and ciphertexts in res/ct.
+
+```bash
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe
+export ZBC_FHE_TOOL="docker run ghcr.io/zama-ai/zbc-fhe-tool zbc-fhe"
+```
+
+Example:
+
+```bash
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe generate-secret-key base64 2 cks_2_2
+$ZBC_FHE_TOOL generate-secret-key base64 2 cks_2_2
+```
+
+One can use the docker compose where the mount is already handled. 
+
+```bash
+docker compose -f docker-compose.override.yml run app zbc-fhe
+```
 
 
 ## Using zbc-fhe tool locally
