@@ -60,8 +60,8 @@ export ZBC_FHE_TOOL="cargo run --release --bin zbc-fhe"
 Build the docker image from the local src:
 
 ```bash
-docker compose  run app zbc-fhe help
-export ZBC_FHE_TOOL="docker compose  run app zbc-fhe"
+docker compose build app
+export ZBC_FHE_TOOL="docker compose run app zbc-fhe"
 ```
 
 
@@ -74,6 +74,7 @@ export ZBC_FHE_TOOL="docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-
 ### Print the global help menu
 
 ```bash
+$ZBC_FHE_TOOL help
 zbc-fhe-tool 0.1.0
 Zama <hello@zama.ai>
 
