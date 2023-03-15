@@ -14,17 +14,15 @@ One need to docker login to ghcr.io to download the published image.
 <details>
   <summary>How to login into Zama github packages</summary>
 <br />
-The first step is to create a PAT (Personnal Access token) in github **developer settings** with 
-a read (write if necessary) access to Zama github registry. 
-
-Then execute docker login ghcr.io with your **github account name** and the **newly created PAT**.
+1. Create a PAT (Personnal Access token) in github **developer settings** with a read (write if necessary) access to Zama github registry. 
+2. Execute docker login ghcr.io with your **github account name** and the **newly created PAT**.
 
 
 ![PAT](./ressources/PAT_github_packages.png)
 </details>
 <br />
 
-The following command mount the current directory in order to persist the created files as keys or ciphertext.
+The following command **mount the current directory** in order to persist the created files as keys or ciphertext.
 Keys are generated in res/keys and ciphertexts in res/ct.
 
 ```bash
