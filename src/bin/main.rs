@@ -153,6 +153,30 @@ enum Commands {
         #[clap(arg_enum)]
         key_format: Format,
     },
+
+    /// Decrypts an integer with the given FHE secret key and compare against an expected value
+    #[clap(arg_required_else_help = true)]
+    DecryptAndCheckInteger {
+        /// The ciphertext to decrypt
+        #[clap(required = true)]
+        ciphertext_file: String,
+
+        /// The format of the input ciphertext
+        #[clap(arg_enum)]
+        ciphertext_format: Format,
+
+        /// Path to the FHE secret key
+        #[clap(required = true)]
+        secret_key_file: String,
+
+        /// The format of the secret key
+        #[clap(arg_enum)]
+        key_format: Format,
+
+        /// The expected integer
+        #[clap(required = true)]
+        expected_result: u64,
+    },
 }
 
 fn main() {
@@ -512,6 +536,52 @@ fn main() {
                     let ct: Ciphertext = bincode::deserialize(&bytes).unwrap();
                     let plaintext = cks.bc_decrypt(&ct);
                     println!("Decrypted integer: {}", plaintext);
+                }
+            }
+        }
+
+        Commands::DecryptAndCheckInteger {
+            ciphertext_file,
+            ciphertext_format,
+            secret_key_file,
+            key_format,
+            expected_result,
+        } => {
+            println!("Decrypting with secret key: {}", secret_key_file);
+            println!("Key format: {}", key_format.to_string());
+            println!("Ciphertext format: {}", ciphertext_format.to_string());
+            println!("Ciphertext: {}", ciphertext_file);
+            let bytes = std::fs::read(&secret_key_file).unwrap();
+            let cks_encoded = match key_format {
+                Format::Base64 => base64::decode(&bytes).unwrap(),
+                Format::Hex => hex::decode(&bytes).unwrap(),
+                Format::Bin => bytes,
+            };
+            let cks: ClientKey = bincode::deserialize(&cks_encoded).unwrap();
+
+            let bytes = std::fs::read(&ciphertext_file).unwrap();
+
+            match ciphertext_format {
+                Format::Base64 => {
+                    let base64_ct = base64::decode(&bytes).unwrap();
+                    let ct: Ciphertext = bincode::deserialize(&base64_ct).unwrap();
+                    let plaintext = cks.decrypt(&ct);
+                    println!("Decrypted integer: {}", plaintext);
+                    assert_eq!(plaintext, expected_result);
+                }
+                Format::Hex => {
+                    let hex_ct = hex::decode(&bytes).unwrap();
+                    let ct: Ciphertext = bincode::deserialize(&hex_ct).unwrap();
+                    let plaintext = cks.bc_decrypt(&ct);
+                    println!("Decrypted integer: {}", plaintext);
+                    assert_eq!(plaintext, expected_result);
+                }
+
+                Format::Bin => {
+                    let ct: Ciphertext = bincode::deserialize(&bytes).unwrap();
+                    let plaintext = cks.bc_decrypt(&ct);
+                    println!("Decrypted integer: {}", plaintext);
+                    assert_eq!(plaintext, expected_result);
                 }
             }
         }
