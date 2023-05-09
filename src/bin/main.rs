@@ -1,8 +1,12 @@
 use std::{fmt, fs};
 
 use clap::{ArgEnum, Parser, Subcommand};
-use tfhe::shortint::parameters::bc_parameters::*;
-use tfhe::shortint::{bc_gen_keys, Ciphertext, ClientKey, CompressedPublicKey, PublicKey};
+
+use tfhe::{
+    generate_keys,
+    prelude::{FheDecrypt, FheEncrypt, FheTryEncrypt},
+    ClientKey, CompressedPublicKey, ConfigBuilder, FheUint8, PublicKey,
+};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -37,10 +41,6 @@ enum Commands {
         #[clap(arg_enum)]
         key_format: Format,
 
-        /// The parameters of the key (1,2 or 3)
-        #[clap(required = true)]
-        msg_size: u64,
-
         /// A file to save the FHE secret key to
         #[clap(required = true)]
         secret_key_file: String,
@@ -52,10 +52,6 @@ enum Commands {
         /// The format of the keys
         #[clap(arg_enum)]
         keys_format: Format,
-
-        /// The parameters of the key (1,2 or 3)
-        #[clap(required = true)]
-        msg_size: u64,
 
         /// A file to save the FHE secret key to
         #[clap(required = true)]
@@ -195,27 +191,20 @@ fn main() {
     match args.command {
         Commands::GenerateSecretKey {
             key_format,
-            msg_size,
             secret_key_file,
         } => {
-            println!(
-                "Generating secret key: {} with parameters msg {} carry {}",
-                secret_key_file, msg_size, msg_size
-            );
+            println!("Generating secret key: {} ", secret_key_file,);
 
-            let parameters = match msg_size {
-                1 => PARAM_MESSAGE_1_CARRY_1,
-                2 => PARAM_MESSAGE_2_CARRY_2,
-                3 => PARAM_MESSAGE_3_CARRY_3,
-                _ => {
-                    panic!("Allowed message size: 1,2 or 3")
-                }
-            };
+            let config = ConfigBuilder::all_disabled()
+                .enable_default_uint8_small()
+                .build();
 
-            let secret_key = ClientKey::bc_new(parameters);
+            // Client-side
+            let (secret_key, _) = generate_keys(config);
 
-            let mut serialized_secret_key = Vec::new();
-            bincode::serialize_into(&mut serialized_secret_key, &secret_key).unwrap();
+            // let mut serialized_secret_key = Vec::new();
+            // bincode::serialize_into(&mut serialized_secret_key, &secret_key).unwrap();
+            let serialized_secret_key = bincode::serialize(&secret_key).unwrap();
 
             match key_format {
                 Format::Base64 => {
@@ -237,45 +226,24 @@ fn main() {
                 }
             }
         }
-
+        // Step_1
         Commands::GenerateFullKeys {
             keys_format,
-            msg_size,
             prefix_keys,
         } => {
-            println!(
-                "Generating {}_cks key with parameters msg {} carry {}",
-                prefix_keys, msg_size, msg_size
-            );
-            println!(
-                "Generating {}_pks key with parameters msg {} carry {}",
-                prefix_keys, msg_size, msg_size
-            );
-            println!(
-                "Generating {}_sks key with parameters msg {} carry {}",
-                prefix_keys, msg_size, msg_size
-            );
+            println!("Generating {}_cks key", prefix_keys);
+            println!("Generating {}_pks key", prefix_keys);
+            println!("Generating {}_sks key", prefix_keys);
 
-            let parameters = match msg_size {
-                1 => PARAM_MESSAGE_1_CARRY_1,
-                2 => PARAM_MESSAGE_2_CARRY_2,
-                3 => PARAM_MESSAGE_3_CARRY_3,
-                _ => {
-                    panic!("Allowed message size: 1,2 or 3")
-                }
-            };
+            let config = ConfigBuilder::all_disabled().enable_default_uint8().build();
 
-            let (cks, sks) = bc_gen_keys(parameters);
-            let pks = PublicKey::bc_new(&cks);
+            // Client-side
+            let (cks, sks) = generate_keys(config);
+            let pks: PublicKey = PublicKey::new(&cks);
 
-            let mut serialized_secret_key = Vec::new();
-            bincode::serialize_into(&mut serialized_secret_key, &cks).unwrap();
-
-            let mut serialized_server_key = Vec::new();
-            bincode::serialize_into(&mut serialized_server_key, &sks).unwrap();
-
-            let mut serialized_public_key = Vec::new();
-            bincode::serialize_into(&mut serialized_public_key, &pks).unwrap();
+            let serialized_secret_key = bincode::serialize(&cks).unwrap();
+            let serialized_server_key = bincode::serialize(&sks).unwrap();
+            let serialized_public_key = bincode::serialize(&pks).unwrap();
 
             match keys_format {
                 Format::Base64 => {
@@ -340,8 +308,9 @@ fn main() {
                 Format::Hex => hex::decode(&bytes).unwrap(),
                 Format::Bin => bytes,
             };
-            let cks: ClientKey = bincode::deserialize(&cks_encoded).unwrap();
-            let ciphertext = cks.bc_encrypt(to_encrypt);
+            let cks = bincode::deserialize_from(cks_encoded.as_slice()).unwrap();
+
+            let ciphertext = FheUint8::encrypt(to_encrypt.try_into().unwrap(), &cks);
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -401,7 +370,7 @@ fn main() {
             };
 
             let pks_compressed: CompressedPublicKey = bincode::deserialize(&pks_encoded).unwrap();
-            let ciphertext = pks_compressed.encrypt(to_encrypt);
+            let ciphertext = FheUint8::try_encrypt(to_encrypt, &pks_compressed).unwrap();
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -460,7 +429,7 @@ fn main() {
                 Format::Bin => bytes,
             };
             let pks: PublicKey = bincode::deserialize(&pks_encoded).unwrap();
-            let ciphertext = pks.encrypt(to_encrypt);
+            let ciphertext = FheUint8::try_encrypt(to_encrypt, &pks).unwrap();
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -514,27 +483,27 @@ fn main() {
                 Format::Hex => hex::decode(&bytes).unwrap(),
                 Format::Bin => bytes,
             };
-            let cks: ClientKey = bincode::deserialize(&cks_encoded).unwrap();
+            let cks: ClientKey = bincode::deserialize_from(cks_encoded.as_slice()).unwrap();
 
             let bytes = std::fs::read(&ciphertext_file).unwrap();
 
             match ciphertext_format {
                 Format::Base64 => {
                     let base64_ct = base64::decode(&bytes).unwrap();
-                    let ct: Ciphertext = bincode::deserialize(&base64_ct).unwrap();
-                    let plaintext = cks.decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
                 Format::Hex => {
                     let hex_ct = hex::decode(&bytes).unwrap();
-                    let ct: Ciphertext = bincode::deserialize(&hex_ct).unwrap();
-                    let plaintext = cks.bc_decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
 
                 Format::Bin => {
-                    let ct: Ciphertext = bincode::deserialize(&bytes).unwrap();
-                    let plaintext = cks.bc_decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(bytes.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
             }
@@ -564,22 +533,22 @@ fn main() {
             match ciphertext_format {
                 Format::Base64 => {
                     let base64_ct = base64::decode(&bytes).unwrap();
-                    let ct: Ciphertext = bincode::deserialize(&base64_ct).unwrap();
-                    let plaintext = cks.decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
                 }
                 Format::Hex => {
                     let hex_ct = hex::decode(&bytes).unwrap();
-                    let ct: Ciphertext = bincode::deserialize(&hex_ct).unwrap();
-                    let plaintext = cks.bc_decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
                 }
 
                 Format::Bin => {
-                    let ct: Ciphertext = bincode::deserialize(&bytes).unwrap();
-                    let plaintext = cks.bc_decrypt(&ct);
+                    let ct: FheUint8 = bincode::deserialize_from(bytes.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
                 }
