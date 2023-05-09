@@ -4,6 +4,8 @@ This repository allows developers to use __tfhe-rs__ features through a user fri
 
 This tool could be used locally or through a docker image. 
 
+**WARNING: The CLI tool is limited to 8 bits for now until the next version of tfhe-rs which will guarantee a fixed key size independent of the input size (in bits).**
+
 
 
 ## Using the published image (easiest way)
@@ -34,8 +36,8 @@ export ZBC_FHE_TOOL="docker run ghcr.io/zama-ai/zbc-fhe-tool zbc-fhe"
 Example:
 
 ```bash
-docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe generate-secret-key base64 2 cks_2_2
-$ZBC_FHE_TOOL generate-secret-key base64 2 cks_2_2
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe generate-secret-key bin cks_2_2
+$ZBC_FHE_TOOL generate-secret-key bin cks_2_2
 ```
 
 One can use the docker compose where the mount is already handled. 
@@ -109,11 +111,10 @@ $ZBC_FHE_TOOL  generate-secret-key
 # Generate an FHE secret key
 
 # USAGE:
-#     zbc-fhe generate-secret-key <KEY_FORMAT> <MSG_SIZE> <SECRET_KEY_FILE>
+#     zbc-fhe generate-secret-key <KEY_FORMAT> <SECRET_KEY_FILE>
 
 # ARGS:
 #     <KEY_FORMAT>         The format of the keys [possible values: hex, base64, bin]
-#     <MSG_SIZE>           The parameters of the key (1,2 or 3)
 #     <SECRET_KEY_FILE>    A file to save the FHE secret key to
 
 # OPTIONS:
@@ -123,51 +124,65 @@ $ZBC_FHE_TOOL  generate-secret-key
 ### Generate a new secret key cks
 
 ```bash
-$ZBC_FHE_TOOL generate-secret-key hex 2 cks_msg2_carry2
-# Generating secret key: cks_msg2_carry2 with parameters msg 2 carry 2
+$ZBC_FHE_TOOL generate-secret-key bin cks_test 
+# Generating secret key: cks_test 
 ls res/keys/
-# cks_msg2_carry2.hex
+# cks_test.bin
 ```
 
 ### Encrypt an integer with the newly created secret key
 
 ```bash
-$ZBC_FHE_TOOL encrypt-integer 2 hex enc_of_2 ./res/keys/cks_msg2_carry2.hex hex
-# Encrypting 2 with secret key: res/keys/cks_msg2_carry2.hex
-# Key format: Hex
-# Ciphertext format: Hex
-# Ciphertext: ./res/ct/enc_of_2.hex
+$ZBC_FHE_TOOL encrypt-integer 11 bin ct_11 res/keys/cks_test.bin bin
+# Encrypting 11 with secret key: res/keys/cks_test.bin
+# Key format: Bin
+# Ciphertext format: Bin
+# Ciphertext: ./res/ct/ct_11.bin
 ```
 
 ## Decrypt a ciphertext using the private key
 
 ```bash
-$ZBC_FHE_TOOL decrypt-integer ./res/ct/enc_of_2.hex hex ./res/keys/cks_msg2_carry2.hex hex
-# Decrypting with secret key: ./res/keys/cks_msg2_carry2.hex
-# Key format: Hex
-# Ciphertext format: Hex
-# Ciphertext: ./res/ct/enc_of_2.hex
-# Decrypted integer: 2
+$ZBC_FHE_TOOL decrypt-integer ./res/ct/ct_11.bin bin ./res/keys/cks_test.bin bin 
+# Decrypting with secret key: ./res/keys/cks_test.bin
+# Key format: Bin
+# Ciphertext format: Bin
+# Ciphertext: ./res/ct/ct_11.bin
+# Decrypted integer: 11
 ```
 
 ### Generate a full set of keys
 
 ```bash
-$ZBC_FHE_TOOL generate-full-keys bin 2 key2_2
-# Generating key2_2_cks key with parameters msg 2 carry 2
-# Generating key2_2_pks key with parameters msg 2 carry 2
-# Generating key2_2_sks key with parameters msg 2 carry 2
+$ZBC_FHE_TOOL  generate-full-keys bin test_8_bits 
+# Generating test_8_bits_cks key
+# Generating test_8_bits_pks key
+# Generating test_8_bits_sks key
 ls res/keys/
-# cks_msg2_carry2.hex  key2_2_cks.bin  key2_2_pks.bin  key2_2_sks.bin
+# test_8_bits_cks.bin
+# test_8_bits_pks.bin
+# test_8_bits_sks.bin
 ```
 
 ### Encrypt an integer with the newly created public key
 
 ```bash
-$ZBC_FHE_TOOL encrypt-public-integer 3 bin enc_of_3 ./res/keys/key2_2_pks.bin bin
-# Encrypting 3 with public key: ./res/keys/key2_2_pks.bin
+$ZBC_FHE_TOOL encrypt-public-integer 46 hex enc_of_46 ./res/keys/test_8_bits_pks.bin bin 
+# Encrypting 46 with public key: ./res/keys/test_8_bits_pks.bin
 # Key format: Bin
-# Ciphertext format: Bin
-# Ciphertext: ./res/ct/enc_of_3.bin
+# Ciphertext format: Hex
+# Ciphertext: ./res/ct/enc_of_46.hex
 ```
 
+
+### Check everything is ok 
+
+
+```bash
+$ZBC_FHE_TOOL decrypt-and-check-integer ./res/ct/enc_of_46.hex hex ./res/keys/test_8_bits_cks.bin bin 46
+# Decrypting with secret key: ./res/keys/test_8_bits_cks.bin
+# Key format: Bin
+# Ciphertext format: Hex
+# Ciphertext: ./res/ct/enc_of_46.hex
+# Decrypted integer: 46
+```
