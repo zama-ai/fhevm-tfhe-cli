@@ -29,14 +29,14 @@ The following command **mount the current directory** in order to persist the cr
 Keys are generated in res/keys and ciphertexts in res/ct.
 
 ```bash
-docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe
 export ZBC_FHE_TOOL="docker run ghcr.io/zama-ai/zbc-fhe-tool zbc-fhe"
 ```
 
 Example:
 
 ```bash
-docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe generate-secret-key bin cks_2_2
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe generate-secret-key bin cks_2_2
 $ZBC_FHE_TOOL generate-secret-key bin cks_2_2
 ```
 
@@ -69,7 +69,7 @@ export ZBC_FHE_TOOL="docker compose run app zbc-fhe"
 ## List of example commands
 
 ```bash
-export ZBC_FHE_TOOL="docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.1 zbc-fhe"
+export ZBC_FHE_TOOL="docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe"
 ```
 
 ### Print the global help menu
