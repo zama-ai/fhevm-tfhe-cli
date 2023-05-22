@@ -4,9 +4,7 @@ This repository allows developers to use __tfhe-rs__ features through a user fri
 
 This tool could be used locally or through a docker image. 
 
-**WARNING: The CLI tool is limited to 8 bits for now until the next version of tfhe-rs which will guarantee a fixed key size independent of the input size (in bits).**
-
-
+**WARNING: The CLI tool is limited is allowing by default operation on 8,16 and 32 bits.**
 
 ## Using the published image (easiest way)
 
@@ -29,15 +27,15 @@ The following command **mount the current directory** in order to persist the cr
 Keys are generated in res/keys and ciphertexts in res/ct.
 
 ```bash
-docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:$TAG zbc-fhe
 export ZBC_FHE_TOOL="docker run ghcr.io/zama-ai/zbc-fhe-tool zbc-fhe"
 ```
 
 Example:
 
 ```bash
-docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe generate-secret-key bin cks_2_2
-$ZBC_FHE_TOOL generate-secret-key bin cks_2_2
+docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:$TAG zbc-fhe generate-secret-key bin cks
+$ZBC_FHE_TOOL generate-secret-key bin cks
 ```
 
 One can use the docker compose where the mount is already handled. 
@@ -65,11 +63,22 @@ docker compose build app
 export ZBC_FHE_TOOL="docker compose run app zbc-fhe"
 ```
 
+## Generating keys for evmos node
+
+```bash
+cargo run --release --example gen_keys carol 
+# ls -ll res/keys
+# .rw-r--r--@ 121k user 22 mai   15:14 -I carol_cks.bin
+# .rw-r--r--@ 1,3M user 22 mai   15:14 -I carol_compressed_pks.bin
+# .rw-r--r--@ 2,3G user 22 mai   15:14 -I carol_sks.bin
+# .rw-r--r--@ 1,2G user 22 mai   15:14 -I carol_uncompressed_pks.bin
+```
+
 
 ## List of example commands
 
 ```bash
-export ZBC_FHE_TOOL="docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:0.1.3 zbc-fhe"
+export ZBC_FHE_TOOL="docker run -v $PWD:/usr/local/app/ ghcr.io/zama-ai/zbc-fhe-tool:$TAG zbc-fhe"
 ```
 
 ### Print the global help menu
