@@ -125,7 +125,7 @@ When running locally the evmos node, one need to generate global keys for networ
 also for users. The following command generate keys that are able to compute FHE 8,16 and 32 bits.
 
 ```bash
-cargo run --release --bin zbc-fhe generate-full-keys-evmos bin global
+$ZBC_FHE_TOOL generate-full-keys-evmos bin global
 # Generating global_cks key
 # Generating global_sks key
 # Generating global_compressed_pks key
