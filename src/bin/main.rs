@@ -4,8 +4,8 @@ use clap::{ArgEnum, Parser, Subcommand};
 
 use tfhe::{
     generate_keys,
-    prelude::{FheDecrypt, FheEncrypt, FheTryEncrypt},
-    ClientKey, CompressedPublicKey, ConfigBuilder, FheUint8, PublicKey,
+    prelude::{FheDecrypt, FheTryEncrypt},
+    set_server_key, ClientKey, CompressedPublicKey, ConfigBuilder, FheUint32, PublicKey, ServerKey,
 };
 
 #[derive(Parser, Debug)]
@@ -173,6 +173,38 @@ enum Commands {
         #[clap(required = true)]
         expected_result: u64,
     },
+
+    /// Decrypts an integer with the given FHE secret key and compare against an expected value
+    #[clap(arg_required_else_help = true)]
+    AddInteger {
+        /// The first ciphertext
+        #[clap(required = true)]
+        ciphertext_file_1: String,
+
+        /// The second ciphertext
+        #[clap(required = true)]
+        ciphertext_file_2: String,
+
+        /// The format of ciphertexts
+        #[clap(arg_enum)]
+        ciphertext_format: Format,
+
+        /// Path to the FHE evaluation key aka sks
+        #[clap(required = true)]
+        evaluation_key_file: String,
+
+        /// The format of the evaluation key
+        #[clap(arg_enum)]
+        evaluation_key_format: Format,
+
+        /// Path to the FHE secret key aka cks
+        #[clap(required = true)]
+        secret_key_file: String,
+
+        /// The format of the secret key
+        #[clap(arg_enum)]
+        secret_key_format: Format,
+    },
 }
 
 fn main() {
@@ -308,9 +340,9 @@ fn main() {
                 Format::Hex => hex::decode(&bytes).unwrap(),
                 Format::Bin => bytes,
             };
-            let cks = bincode::deserialize_from(cks_encoded.as_slice()).unwrap();
+            let cks: ClientKey = bincode::deserialize_from(cks_encoded.as_slice()).unwrap();
 
-            let ciphertext = FheUint8::encrypt(to_encrypt.try_into().unwrap(), &cks);
+            let ciphertext = FheUint32::try_encrypt(to_encrypt, &cks).unwrap();
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -370,7 +402,7 @@ fn main() {
             };
 
             let pks_compressed: CompressedPublicKey = bincode::deserialize(&pks_encoded).unwrap();
-            let ciphertext = FheUint8::try_encrypt(to_encrypt, &pks_compressed).unwrap();
+            let ciphertext = FheUint32::try_encrypt(to_encrypt, &pks_compressed).unwrap();
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -429,7 +461,7 @@ fn main() {
                 Format::Bin => bytes,
             };
             let pks: PublicKey = bincode::deserialize(&pks_encoded).unwrap();
-            let ciphertext = FheUint8::try_encrypt(to_encrypt, &pks).unwrap();
+            let ciphertext = FheUint32::try_encrypt(to_encrypt, &pks).unwrap();
 
             let mut serialized_ct = Vec::new();
             bincode::serialize_into(&mut serialized_ct, &ciphertext).unwrap();
@@ -490,20 +522,20 @@ fn main() {
             match ciphertext_format {
                 Format::Base64 => {
                     let base64_ct = base64::decode(&bytes).unwrap();
-                    let ct: FheUint8 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
                 Format::Hex => {
                     let hex_ct = hex::decode(&bytes).unwrap();
-                    let ct: FheUint8 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
 
                 Format::Bin => {
-                    let ct: FheUint8 = bincode::deserialize_from(bytes.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(bytes.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                 }
             }
@@ -533,24 +565,96 @@ fn main() {
             match ciphertext_format {
                 Format::Base64 => {
                     let base64_ct = base64::decode(&bytes).unwrap();
-                    let ct: FheUint8 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(base64_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
                 }
                 Format::Hex => {
                     let hex_ct = hex::decode(&bytes).unwrap();
-                    let ct: FheUint8 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(hex_ct.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
                 }
 
                 Format::Bin => {
-                    let ct: FheUint8 = bincode::deserialize_from(bytes.as_slice()).unwrap();
-                    let plaintext: u64 = FheUint8::decrypt(&ct, &cks);
+                    let ct: FheUint32 = bincode::deserialize_from(bytes.as_slice()).unwrap();
+                    let plaintext: u64 = FheUint32::decrypt(&ct, &cks);
                     println!("Decrypted integer: {}", plaintext);
                     assert_eq!(plaintext, expected_result);
+                }
+            }
+        }
+
+        Commands::AddInteger {
+            ciphertext_file_1,
+            ciphertext_file_2,
+            ciphertext_format,
+            evaluation_key_file,
+            evaluation_key_format,
+            secret_key_file,
+            secret_key_format,
+        } => {
+            println!("Evaluation key: {}", evaluation_key_file);
+            println!("Key format: {}", evaluation_key_format.to_string());
+            println!("Ciphertext 1: {}", ciphertext_file_1);
+            println!("Ciphertext 2: {}", ciphertext_file_2);
+            println!("Ciphertexts format: {}", ciphertext_format.to_string());
+
+            let bytes = std::fs::read(&evaluation_key_file).unwrap();
+            let sks_encoded = match evaluation_key_format {
+                Format::Base64 => base64::decode(&bytes).unwrap(),
+                Format::Hex => hex::decode(&bytes).unwrap(),
+                Format::Bin => bytes,
+            };
+            let sks: ServerKey = bincode::deserialize(&sks_encoded).unwrap();
+
+            let bytes_cks = std::fs::read(&secret_key_file).unwrap();
+            let cks_encoded = match secret_key_format {
+                Format::Base64 => base64::decode(&bytes_cks).unwrap(),
+                Format::Hex => hex::decode(&bytes_cks).unwrap(),
+                Format::Bin => bytes_cks,
+            };
+            let cks: ClientKey = bincode::deserialize(&cks_encoded).unwrap();
+
+            let bytes_1 = std::fs::read(&ciphertext_file_1).unwrap();
+            let bytes_2 = std::fs::read(&ciphertext_file_2).unwrap();
+
+            match ciphertext_format {
+                Format::Base64 => {
+                    let base64_ct_1 = base64::decode(&bytes_1).unwrap();
+                    let base64_ct_2 = base64::decode(&bytes_2).unwrap();
+                    let ct_1: FheUint32 =
+                        bincode::deserialize_from(base64_ct_1.as_slice()).unwrap();
+                    let ct_2: FheUint32 =
+                        bincode::deserialize_from(base64_ct_2.as_slice()).unwrap();
+                    //Server-side
+                    set_server_key(sks);
+                    let result = ct_1 + ct_2;
+                    let plaintext: u64 = FheUint32::decrypt(&result, &cks);
+                    println!("Decrypted integer (sum): {}", plaintext);
+                }
+                Format::Hex => {
+                    let hex_ct_1 = hex::decode(&bytes_1).unwrap();
+                    let hex_ct_2 = hex::decode(&bytes_2).unwrap();
+                    let ct_1: FheUint32 = bincode::deserialize_from(hex_ct_1.as_slice()).unwrap();
+                    let ct_2: FheUint32 = bincode::deserialize_from(hex_ct_2.as_slice()).unwrap();
+                    //Server-side
+                    set_server_key(sks);
+                    let result = ct_1 + ct_2;
+                    let plaintext: u64 = FheUint32::decrypt(&result, &cks);
+                    println!("Decrypted integer (sum): {}", plaintext);
+                }
+
+                Format::Bin => {
+                    let ct_1: FheUint32 = bincode::deserialize_from(bytes_1.as_slice()).unwrap();
+                    let ct_2: FheUint32 = bincode::deserialize_from(bytes_2.as_slice()).unwrap();
+                    //Server-side
+                    set_server_key(sks);
+                    let result = ct_1 + ct_2;
+                    let plaintext: u64 = FheUint32::decrypt(&result, &cks);
+                    println!("Decrypted integer (sum): {}", plaintext);
                 }
             }
         }

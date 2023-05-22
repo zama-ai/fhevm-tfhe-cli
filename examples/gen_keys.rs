@@ -20,8 +20,8 @@ fn main() {
 
     let conf = ConfigBuilder::all_disabled()
         .enable_default_uint8_small()
-        // .enable_default_uint16_small()
-        // .enable_default_uint32_small()
+        .enable_default_uint16_small()
+        .enable_default_uint32_small()
         .build();
 
     let cks_filename = format!("{}_cks.bin", user_name);

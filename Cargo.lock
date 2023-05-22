@@ -702,8 +702,9 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 
 [[package]]
 name = "tfhe"
-version = "0.3.0"
-source = "git+https://github.com/zama-ai/tfhe-rs?rev=ecf9d500589ba226a229885030a7c2b3c8e784e5#ecf9d500589ba226a229885030a7c2b3c8e784e5"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3190f4b71a71fb8d751313b9d7a5a9b1d439fdf8faedb416999cb82fce5500e"
 dependencies = [
  "aligned-vec",
  "bytemuck",
