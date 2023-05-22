@@ -46,9 +46,21 @@ enum Commands {
         secret_key_file: String,
     },
 
-    /// Generate ful FHE keys aka cks, sks and pks
+    /// Generate full FHE keys aka cks, sks and pks
     #[clap(arg_required_else_help = true)]
     GenerateFullKeys {
+        /// The format of the keys
+        #[clap(arg_enum)]
+        keys_format: Format,
+
+        /// A file to save the FHE secret key to
+        #[clap(required = true)]
+        prefix_keys: String,
+    },
+
+    /// Generate full FHE keys aka cks, sks and un/compressed pks for evmos node
+    #[clap(arg_required_else_help = true)]
+    GenerateFullKeysEvmos {
         /// The format of the keys
         #[clap(arg_enum)]
         keys_format: Format,
@@ -314,6 +326,95 @@ fn main() {
                     std::fs::write(
                         format!("{}/{}_pks.bin", keys_path, prefix_keys),
                         serialized_public_key,
+                    )
+                    .unwrap();
+                }
+            }
+        }
+
+        // Step_1
+        Commands::GenerateFullKeysEvmos {
+            keys_format,
+            prefix_keys,
+        } => {
+            println!("Generating {}_cks key", prefix_keys);
+            println!("Generating {}_sks key", prefix_keys);
+            println!("Generating {}_compressed_pks key", prefix_keys);
+            println!("Generating {}_uncompressed_pks key", prefix_keys);
+
+            let config = ConfigBuilder::all_disabled().enable_default_uint8().build();
+
+            // Client-side
+            let (cks, sks) = generate_keys(config);
+            let pks_compressed: CompressedPublicKey = CompressedPublicKey::new(&cks);
+            let pks: PublicKey = PublicKey::new(&cks);
+
+            let serialized_secret_key = bincode::serialize(&cks).unwrap();
+            let serialized_server_key = bincode::serialize(&sks).unwrap();
+            let serialized_public_key_compressed = bincode::serialize(&pks_compressed).unwrap();
+            let serialized_public_key_uncompressed = bincode::serialize(&pks).unwrap();
+
+            match keys_format {
+                Format::Base64 => {
+                    let base64_cks = base64::encode(&serialized_secret_key);
+                    let base64_sks = base64::encode(&serialized_server_key);
+                    let base64_pks_compressed = base64::encode(&serialized_public_key_compressed);
+                    let base64_pks_uncompressed =
+                        base64::encode(&serialized_public_key_uncompressed);
+                    std::fs::write(format!("{}/{}_cks.b64", keys_path, prefix_keys), base64_cks)
+                        .unwrap();
+                    std::fs::write(format!("{}/{}_sks.b64", keys_path, prefix_keys), base64_sks)
+                        .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_uncompressed.b64", keys_path, prefix_keys),
+                        base64_pks_uncompressed,
+                    )
+                    .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_compressed.b64", keys_path, prefix_keys),
+                        base64_pks_compressed,
+                    )
+                    .unwrap();
+                }
+                Format::Hex => {
+                    let hex_cks = hex::encode(&serialized_secret_key);
+                    let hex_sks = hex::encode(&serialized_server_key);
+                    let hex_pks_uncompressed = hex::encode(&serialized_public_key_uncompressed);
+                    let hex_pks_compressed = hex::encode(&serialized_public_key_compressed);
+                    std::fs::write(format!("{}/{}_cks.hex", keys_path, prefix_keys), hex_cks)
+                        .unwrap();
+                    std::fs::write(format!("{}/{}_sks.hex", keys_path, prefix_keys), hex_sks)
+                        .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_pks_uncompressed.hex", keys_path, prefix_keys),
+                        hex_pks_uncompressed,
+                    )
+                    .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_pks_compressed.hex", keys_path, prefix_keys),
+                        hex_pks_compressed,
+                    )
+                    .unwrap();
+                }
+                Format::Bin => {
+                    std::fs::write(
+                        format!("{}/{}_cks.bin", keys_path, prefix_keys),
+                        serialized_secret_key,
+                    )
+                    .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_sks.bin", keys_path, prefix_keys),
+                        serialized_server_key,
+                    )
+                    .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_pks_compressed.bin", keys_path, prefix_keys),
+                        serialized_public_key_compressed,
+                    )
+                    .unwrap();
+                    std::fs::write(
+                        format!("{}/{}_pks_uncompressed.bin", keys_path, prefix_keys),
+                        serialized_public_key_uncompressed,
                     )
                     .unwrap();
                 }

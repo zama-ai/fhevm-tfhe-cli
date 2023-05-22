@@ -63,20 +63,6 @@ docker compose build app
 export ZBC_FHE_TOOL="docker compose run app zbc-fhe"
 ```
 
-## Generating keys for evmos node
-
-When running locally the evmos node, one need to generate global keys for network and
-also for users. The following command generate keys that are able to compute FHE 8,16 and 32 bits.
-
-```bash
-cargo run --release --example gen_keys carol 
-# ls -ll res/keys
-# .rw-r--r--@ 121k user 22 mai   15:14 -I carol_cks.bin
-# .rw-r--r--@ 1,3M user 22 mai   15:14 -I carol_compressed_pks.bin
-# .rw-r--r--@ 2,3G user 22 mai   15:14 -I carol_sks.bin
-# .rw-r--r--@ 1,2G user 22 mai   15:14 -I carol_uncompressed_pks.bin
-```
-
 
 ## List of example commands
 
@@ -131,6 +117,25 @@ $ZBC_FHE_TOOL  generate-secret-key
 
 # OPTIONS:
 #     -h, --help    Print help information
+```
+
+### Generating keys for evmos node
+
+When running locally the evmos node, one need to generate global keys for network and
+also for users. The following command generate keys that are able to compute FHE 8,16 and 32 bits.
+
+```bash
+cargo run --release --bin zbc-fhe generate-full-keys-evmos bin global
+# Generating global_cks key
+# Generating global_sks key
+# Generating global_compressed_pks key
+# Generating global_uncompressed_pks key
+ 
+# ls -ll res/keys
+# .rw-r--r--@ 121k user 22 mai   15:14 -I global_cks.bin
+# .rw-r--r--@ 1,3M user 22 mai   15:14 -I global_compressed_pks.bin
+# .rw-r--r--@ 2,3G user 22 mai   15:14 -I global_sks.bin
+# .rw-r--r--@ 1,2G user 22 mai   15:14 -I global_uncompressed_pks.bin
 ```
 
 ### Generate a new secret key cks
