@@ -4,7 +4,7 @@ This repository allows developers to use __tfhe-rs__ features through a user fri
 
 This tool could be used locally or through a docker image. 
 
-**WARNING: The CLI tool is limited is allowing by default operation on 8,16 and 32 bits.**
+**WARNING: The CLI tool is limited by default to operation on 8,16 and 32 bits.**
 
 ## Using the published image (easiest way)
 
@@ -64,6 +64,9 @@ export ZBC_FHE_TOOL="docker compose run app zbc-fhe"
 ```
 
 ## Generating keys for evmos node
+
+When running locally the evmos node, one need to generate global keys for network and
+also for users. The following command generate keys that are able to compute FHE 8,16 and 32 bits.
 
 ```bash
 cargo run --release --example gen_keys carol 
