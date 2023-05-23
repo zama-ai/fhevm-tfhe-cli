@@ -241,6 +241,8 @@ fn main() {
 
             let config = ConfigBuilder::all_disabled()
                 .enable_default_uint8_small()
+                .enable_default_uint16_small()
+                .enable_default_uint32_small()
                 .build();
 
             // Client-side
@@ -279,7 +281,11 @@ fn main() {
             println!("Generating {}_pks key", prefix_keys);
             println!("Generating {}_sks key", prefix_keys);
 
-            let config = ConfigBuilder::all_disabled().enable_default_uint8().build();
+            let config = ConfigBuilder::all_disabled()
+                .enable_default_uint8_small()
+                .enable_default_uint16_small()
+                .enable_default_uint32_small()
+                .build();
 
             // Client-side
             let (cks, sks) = generate_keys(config);
@@ -342,7 +348,11 @@ fn main() {
             println!("Generating {}_compressed_pks key", prefix_keys);
             println!("Generating {}_uncompressed_pks key", prefix_keys);
 
-            let config = ConfigBuilder::all_disabled().enable_default_uint8().build();
+            let config = ConfigBuilder::all_disabled()
+                .enable_default_uint8_small()
+                .enable_default_uint16_small()
+                .enable_default_uint32_small()
+                .build();
 
             // Client-side
             let (cks, sks) = generate_keys(config);
