@@ -124,6 +124,8 @@ $ZBC_FHE_TOOL  generate-secret-key
 When running locally the evmos node, one need to generate global keys for network and
 also for users. The following command generate keys that are able to compute FHE 8,16 and 32 bits.
 
+NOTE: this [bash script](https://github.com/zama-ai/zbc-development/blob/feature/delete-zkpok/prepare_volumes_from_fhe_tool.sh) creates all the needed keys for a local deployment of evmos node
+
 ```bash
 $ZBC_FHE_TOOL generate-full-keys-evmos bin global
 # Generating global_cks key
