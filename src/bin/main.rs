@@ -386,12 +386,12 @@ fn main() {
                     std::fs::write(format!("{}/{}_sks.hex", keys_path, prefix_keys), hex_sks)
                         .unwrap();
                     std::fs::write(
-                        format!("{}/{}_pks_uncompressed.hex", keys_path, prefix_keys),
+                        format!("{}/{}_uncompressed_pks.hex", keys_path, prefix_keys),
                         hex_pks_uncompressed,
                     )
                     .unwrap();
                     std::fs::write(
-                        format!("{}/{}_pks_compressed.hex", keys_path, prefix_keys),
+                        format!("{}/{}_compressed_pks.hex", keys_path, prefix_keys),
                         hex_pks_compressed,
                     )
                     .unwrap();
@@ -408,12 +408,12 @@ fn main() {
                     )
                     .unwrap();
                     std::fs::write(
-                        format!("{}/{}_pks_compressed.bin", keys_path, prefix_keys),
+                        format!("{}/{}_compressed_pks.bin", keys_path, prefix_keys),
                         serialized_public_key_compressed,
                     )
                     .unwrap();
                     std::fs::write(
-                        format!("{}/{}_pks_uncompressed.bin", keys_path, prefix_keys),
+                        format!("{}/{}_uncompressed_pks.bin", keys_path, prefix_keys),
                         serialized_public_key_uncompressed,
                     )
                     .unwrap();
