@@ -20,6 +20,18 @@ struct Args {
     command: Commands,
 }
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct PublicEncryptConf {
+    /// Save the ciphertext in the given output file.
+    #[clap(required = true)]
+    ciphertext_output_file: String,
+
+    /// Path to the FHE public key.
+    #[clap(required = true)]
+    public_key_file: String,
+}
+
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Generate FHE key triple (sks, cks, pks).
@@ -37,13 +49,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u8,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Encrypts a 16-bit integer to a 16-bit FHE ciphertext.
@@ -53,13 +60,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u16,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Encrypts a 32-bit integer to a 32-bit FHE ciphertext.
@@ -69,13 +71,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u32,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Encrypts a 64-bit integer to a 64-bit FHE ciphertext.
@@ -85,13 +82,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u64,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Encrypts a 64-bit integer to a 128-bit FHE ciphertext.
@@ -101,13 +93,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u64,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Encrypts a 64-bit integer to a 256-bit FHE ciphertext.
@@ -117,13 +104,8 @@ enum Commands {
         #[clap(required = true)]
         plaintext: u64,
 
-        /// Save the ciphertext in the given output file.
-        #[clap(required = true)]
-        ciphertext_output_file: String,
-
-        /// Path to the FHE public key.
-        #[clap(required = true)]
-        public_key_file: String,
+        #[clap(flatten)]
+        conf: PublicEncryptConf,
     },
 
     /// Decrypts an 8-bit ciphertext.
@@ -257,76 +239,52 @@ fn main() {
             }
         }
 
-        Commands::PublicEncryptInteger8 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger8 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint8List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger16 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger16 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint16List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger32 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger32 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint32List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger64 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger64 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint64List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger128 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger128 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint128List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger256 {
-            plaintext,
-            ciphertext_output_file,
-            public_key_file,
-        } => {
+        Commands::PublicEncryptInteger256 { plaintext, conf } => {
             println!("Encrypting {plaintext}");
-            let pks = read_pks(&public_key_file);
+            let pks = read_pks(&conf.public_key_file);
             let bytes = bincode::serialize(&CompactFheUint256List::encrypt(&vec![plaintext], &pks))
                 .expect("ciphertext serialization");
-            write(ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
         Commands::DecryptInteger8 {
