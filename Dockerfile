@@ -2,7 +2,7 @@ FROM rust:1.67 as builder
 
 WORKDIR /usr/local/app/zbc-fhe-tool
 ADD . .
-RUN cargo build --bin zbc-fhe  --release --features tfhe/$(./scripts/get_arch.sh)
+RUN cargo build --release --features tfhe/$(./scripts/get_arch.sh)
 
 FROM debian:bullseye-slim
 WORKDIR /usr/local/app
