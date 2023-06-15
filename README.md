@@ -9,8 +9,8 @@ This tool could be used locally or through a docker image.
 Make sure you either have Docker or the Rust toolchain installed on your host machine.
 
 Please replace `ZBC_FHE_TOOL` with either:
- * "`cargo run --features tfhe/aarch64 --release -- `" - for ARM CPUs when running locally on the host
- * "`cargo run --features tfhe/x86_64 --release -- `" - for x86 CPUs when running locally on the host
+ * "`cargo run --features tfhe/aarch64-unix --release -- `" - for ARM CPUs when running locally on the host
+ * "`cargo run --features tfhe/x86_64-unix --release -- `" - for x86 CPUs when running locally on the host
  * "`docker run -v LOCAL_DIR:/zbc-fhe-output ghcr.io/zama-ai/zbc-fhe-tool:TAG zbc-fhe`"
     * replace LOCAL_DIR with a local directory of choice in order to persist output from the tool when using Docker
     * replace TAG with a known tagged version
@@ -25,21 +25,21 @@ ZBC_FHE_TOOL help
 ## Key generation
 
 ```bash
-ZBC_FHE_TOOL generate-keys /path/to/keys/directory
+ZBC_FHE_TOOL generate-keys -d /path/to/keys/directory
 ```
 
 ## Public encryption
 
 ```bash
 # Encryption requires the public key `pks`.
-ZBC_FHE_TOOL public-encrypt-integer32 42 ./ciphertext /path/to/keys/directory/pks
+ZBC_FHE_TOOL public-encrypt-integer32 -c ./ciphertext -p /path/to/keys/directory/pks -v 42
 ```
 
 ## Decryption
 
 ```bash
 # Decryption requires the secret key `cks`.
-ZBC_FHE_TOOL decrypt-integer32 ./ciphertext /path/to/keys/directory/cks
+ZBC_FHE_TOOL decrypt-ciphertext -c ./ciphertext -s /path/to/keys/directory/cks
 ```
 
 # Using published Docker images
