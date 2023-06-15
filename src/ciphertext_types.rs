@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use tfhe::{
     prelude::FheEncrypt, CompactFheUint128List, CompactFheUint16List, CompactFheUint256List,
-    CompactFheUint32List, CompactFheUint64List, CompactFheUint8List, FheUint128, FheUint16,
-    FheUint256, FheUint32, FheUint64, FheUint8,
+    CompactFheUint32List, CompactFheUint64List, CompactFheUint8List, CompactPublicKey, FheUint128,
+    FheUint16, FheUint256, FheUint32, FheUint64, FheUint8,
 };
 
 use crate::gen_keys::gen_keys;
@@ -45,135 +45,32 @@ pub struct CiphertextType {
 // per type. This is inefficient and error-prone.
 pub struct CiphertextTypeRepo {
     types: HashMap<usize, CiphertextType>,
+    pks: CompactPublicKey,
 }
 
 impl CiphertextTypeRepo {
     pub fn new() -> CiphertextTypeRepo {
+        let (_, _, pks) = gen_keys();
+
         let mut repo = CiphertextTypeRepo {
             types: Default::default(),
+            pks,
         };
 
-        let (_cks, _, pks) = gen_keys();
+        repo.insert_compact::<u8, CompactFheUint8List>(Precision::FheUint8);
+        repo.insert_compact::<u16, CompactFheUint16List>(Precision::FheUint16);
+        repo.insert_compact::<u32, CompactFheUint32List>(Precision::FheUint32);
+        repo.insert_compact::<u64, CompactFheUint64List>(Precision::FheUint64);
+        repo.insert_compact::<u64, CompactFheUint128List>(Precision::FheUint128);
+        repo.insert_compact::<u64, CompactFheUint256List>(Precision::FheUint256);
 
-        let list = bincode::serialize(&CompactFheUint8List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint8,
-                format: Format::Compact,
-            },
-        );
+        repo.insert_expanded::<u8, FheUint8>(Precision::FheUint8);
+        repo.insert_expanded::<u16, FheUint16>(Precision::FheUint16);
+        repo.insert_expanded::<u32, FheUint32>(Precision::FheUint32);
+        repo.insert_expanded::<u64, FheUint64>(Precision::FheUint64);
+        repo.insert_expanded::<u64, FheUint128>(Precision::FheUint128);
+        repo.insert_expanded::<u64, FheUint256>(Precision::FheUint256);
 
-        let list = bincode::serialize(&CompactFheUint16List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint16,
-                format: Format::Compact,
-            },
-        );
-
-        let list = bincode::serialize(&CompactFheUint32List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint32,
-                format: Format::Compact,
-            },
-        );
-
-        let list = bincode::serialize(&CompactFheUint64List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint64,
-                format: Format::Compact,
-            },
-        );
-
-        let list = bincode::serialize(&CompactFheUint128List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint128,
-                format: Format::Compact,
-            },
-        );
-
-        let list = bincode::serialize(&CompactFheUint256List::encrypt(&vec![0], &pks))
-            .expect("ciphertext serialization");
-        repo.insert(
-            &list,
-            CiphertextType {
-                precision: Precision::FheUint256,
-                format: Format::Compact,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint8::encrypt(0u8, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint8,
-                format: Format::Expanded,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint16::encrypt(0u16, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint16,
-                format: Format::Expanded,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint32::encrypt(0u32, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint32,
-                format: Format::Expanded,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint64::encrypt(0u64, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint64,
-                format: Format::Expanded,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint128::encrypt(0u64, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint128,
-                format: Format::Expanded,
-            },
-        );
-
-        let ct =
-            bincode::serialize(&FheUint256::encrypt(0u64, &pks)).expect("ciphertext serialization");
-        repo.insert(
-            &ct,
-            CiphertextType {
-                precision: Precision::FheUint256,
-                format: Format::Expanded,
-            },
-        );
         repo
     }
 
@@ -185,5 +82,40 @@ impl CiphertextTypeRepo {
         if self.types.insert(ct.len(), ct_type).is_some() {
             panic!("type size already existing");
         }
+    }
+
+    fn insert_compact<T, Compact>(&mut self, precision: Precision)
+    where
+        T: Default,
+        Compact: for<'a> FheEncrypt<&'a [T], CompactPublicKey>,
+        Compact: serde::Serialize,
+    {
+        let value: [T; 1] = [T::default()];
+        let list = bincode::serialize(&Compact::encrypt(&value, &self.pks))
+            .expect("ciphertext serialization");
+        self.insert(
+            &list,
+            CiphertextType {
+                precision,
+                format: Format::Compact,
+            },
+        );
+    }
+
+    fn insert_expanded<T, Expanded>(&mut self, precision: Precision)
+    where
+        T: Default,
+        Expanded: FheEncrypt<T, CompactPublicKey>,
+        Expanded: serde::Serialize,
+    {
+        let list = bincode::serialize(&Expanded::encrypt(T::default(), &self.pks))
+            .expect("ciphertext serialization");
+        self.insert(
+            &list,
+            CiphertextType {
+                precision,
+                format: Format::Expanded,
+            },
+        );
     }
 }
