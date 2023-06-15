@@ -1,16 +1,16 @@
 use std::{fs::File, io::Read};
 
 use clap::{Parser, Subcommand};
+use tfhe::{FheUint128, FheUint16, FheUint256, FheUint32, FheUint64, FheUint8};
+use zbc_fhe_tool::ciphertext_types::{CiphertextTypeRepo, Format, Precision};
+use zbc_fhe_tool::gen_keys::gen_keys;
 
 use std::fs::write;
 
 use tfhe::{
-    generate_keys,
     prelude::{FheDecrypt, FheEncrypt},
-    shortint::parameters::PARAM_SMALL_MESSAGE_2_CARRY_2_COMPACT_PK,
     ClientKey, CompactFheUint128List, CompactFheUint16List, CompactFheUint256List,
     CompactFheUint32List, CompactFheUint64List, CompactFheUint8List, CompactPublicKey,
-    ConfigBuilder,
 };
 
 #[derive(Parser, Debug)]
@@ -22,14 +22,18 @@ struct Args {
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
-struct PublicEncryptConf {
+struct PublicEncryptCommon {
     /// Save the ciphertext in the given output file.
-    #[clap(required = true)]
+    #[clap(short, long)]
     ciphertext_output_file: String,
 
     /// Path to the FHE public key.
-    #[clap(required = true)]
+    #[clap(short, long)]
     public_key_file: String,
+
+    /// Whether to encrypt to an expanded FHE ciphertext (compact is used if not expanded).
+    #[clap(short, long)]
+    expanded: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -38,7 +42,7 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     GenerateKeys {
         /// A directory to save the keys in.
-        #[clap(required = true)]
+        #[clap(short, long)]
         destination_dir: String,
     },
 
@@ -46,137 +50,77 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger8 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u8,
+        #[clap(short, long)]
+        value: u8,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
     /// Encrypts a 16-bit integer to a 16-bit FHE ciphertext.
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger16 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u16,
+        #[clap(short, long)]
+        value: u16,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
     /// Encrypts a 32-bit integer to a 32-bit FHE ciphertext.
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger32 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u32,
+        #[clap(short, long)]
+        value: u32,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
     /// Encrypts a 64-bit integer to a 64-bit FHE ciphertext.
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger64 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u64,
+        #[clap(short, long)]
+        value: u64,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
     /// Encrypts a 64-bit integer to a 128-bit FHE ciphertext.
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger128 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u64,
+        #[clap(short, long)]
+        value: u64,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
     /// Encrypts a 64-bit integer to a 256-bit FHE ciphertext.
     #[clap(arg_required_else_help = true)]
     PublicEncryptInteger256 {
         /// The integer to encrypt.
-        #[clap(required = true)]
-        plaintext: u64,
+        #[clap(short, long)]
+        value: u64,
 
         #[clap(flatten)]
-        conf: PublicEncryptConf,
+        common: PublicEncryptCommon,
     },
 
-    /// Decrypts an 8-bit ciphertext.
+    /// Decrypts ciphertext.
     #[clap(arg_required_else_help = true)]
-    DecryptInteger8 {
+    DecryptCiphertext {
         /// The ciphertext to decrypt.
-        #[clap(required = true)]
+        #[clap(short, long)]
         ciphertext_file: String,
 
         /// Path to the FHE secret key.
-        #[clap(required = true)]
-        secret_key_file: String,
-    },
-
-    /// Decrypts a 16-bit ciphertext.
-    #[clap(arg_required_else_help = true)]
-    DecryptInteger16 {
-        /// The ciphertext to decrypt.
-        #[clap(required = true)]
-        ciphertext_file: String,
-
-        /// Path to the FHE secret key.
-        #[clap(required = true)]
-        secret_key_file: String,
-    },
-
-    /// Decrypts a 32-bit ciphertext.
-    #[clap(arg_required_else_help = true)]
-    DecryptInteger32 {
-        /// The ciphertext to decrypt.
-        #[clap(required = true)]
-        ciphertext_file: String,
-
-        /// Path to the FHE secret key.
-        #[clap(required = true)]
-        secret_key_file: String,
-    },
-
-    /// Decrypts a 64-bit ciphertext.
-    #[clap(arg_required_else_help = true)]
-    DecryptInteger64 {
-        /// The ciphertext to decrypt.
-        #[clap(required = true)]
-        ciphertext_file: String,
-
-        /// Path to the FHE secret key.
-        #[clap(required = true)]
-        secret_key_file: String,
-    },
-
-    /// Decrypts a 128-bit ciphertext.
-    #[clap(arg_required_else_help = true)]
-    DecryptInteger128 {
-        /// The ciphertext to decrypt.
-        #[clap(required = true)]
-        ciphertext_file: String,
-
-        /// Path to the FHE secret key.
-        #[clap(required = true)]
-        secret_key_file: String,
-    },
-
-    /// Decrypts a 256-bit ciphertext.
-    #[clap(arg_required_else_help = true)]
-    DecryptInteger256 {
-        /// The ciphertext to decrypt.
-        #[clap(required = true)]
-        ciphertext_file: String,
-
-        /// Path to the FHE secret key.
-        #[clap(required = true)]
+        #[clap(short, long)]
         secret_key_file: String,
     },
 }
@@ -214,11 +158,7 @@ fn main() {
         Commands::GenerateKeys { destination_dir } => {
             println!("Generating FHE keys in {destination_dir}");
 
-            let config = ConfigBuilder::all_disabled()
-                .enable_custom_integers(PARAM_SMALL_MESSAGE_2_CARRY_2_COMPACT_PK, None)
-                .build();
-            let (cks, sks) = generate_keys(config);
-            let pks = CompactPublicKey::new(&cks);
+            let (cks, sks, pks) = gen_keys();
 
             {
                 let cks = bincode::serialize(&cks).expect("cks serialization");
@@ -239,123 +179,172 @@ fn main() {
             }
         }
 
-        Commands::PublicEncryptInteger8 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint8List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger8 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint8::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint8List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger16 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint16List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger16 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint16::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint16List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger32 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint32List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger32 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint32::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint32List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger64 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint64List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger64 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint64::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint64List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger128 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint128List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger128 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint128::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint128List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::PublicEncryptInteger256 { plaintext, conf } => {
-            println!("Encrypting {plaintext}");
-            let pks = read_pks(&conf.public_key_file);
-            let bytes = bincode::serialize(&CompactFheUint256List::encrypt(&vec![plaintext], &pks))
-                .expect("ciphertext serialization");
-            write(conf.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
+        Commands::PublicEncryptInteger256 { value, common } => {
+            println!("Encrypting {value}");
+            let pks = read_pks(&common.public_key_file);
+            let bytes;
+            if common.expanded {
+                bytes = bincode::serialize(&FheUint256::encrypt(value, &pks))
+                    .expect("ciphertext serialization");
+            } else {
+                bytes = bincode::serialize(&CompactFheUint256List::encrypt(&vec![value], &pks))
+                    .expect("ciphertext serialization");
+            }
+            write(common.ciphertext_output_file, &bytes).expect("ciphertext write to disk");
         }
 
-        Commands::DecryptInteger8 {
+        Commands::DecryptCiphertext {
             ciphertext_file,
             secret_key_file,
         } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint8List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u8 = expanded_ct[0].decrypt(&cks);
-            println!("Decryption result: {plaintext}");
-        }
-
-        Commands::DecryptInteger16 {
-            ciphertext_file,
-            secret_key_file,
-        } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint16List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u16 = expanded_ct[0].decrypt(&cks);
-            println!("Decryption result: {plaintext}");
-        }
-
-        Commands::DecryptInteger32 {
-            ciphertext_file,
-            secret_key_file,
-        } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint32List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u32 = expanded_ct[0].decrypt(&cks);
-            println!("Decryption result: {plaintext}");
-        }
-
-        Commands::DecryptInteger64 {
-            ciphertext_file,
-            secret_key_file,
-        } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint64List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u64 = expanded_ct[0].decrypt(&cks);
-            println!("Decryption result: {plaintext}");
-        }
-
-        Commands::DecryptInteger128 {
-            ciphertext_file,
-            secret_key_file,
-        } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint128List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u64 = expanded_ct[0].decrypt(&cks);
-            println!("Decryption result: {plaintext}");
-        }
-
-        Commands::DecryptInteger256 {
-            ciphertext_file,
-            secret_key_file,
-        } => {
-            let (cks, bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
-            let ct: CompactFheUint256List =
-                bincode::deserialize(&bytes).expect("ciphertext deserialization");
-            let expanded_ct = ct.expand();
-            let plaintext: u64 = expanded_ct[0].decrypt(&cks);
+            let (cks, ct_bytes) = read_cks_and_ciphertext(&secret_key_file, &ciphertext_file);
+            let type_repo = CiphertextTypeRepo::new();
+            let ct_type = type_repo
+                .get_type(&ct_bytes)
+                .expect("known ciphertext type");
+            let plaintext: u64;
+            match ct_type.format {
+                Format::Compact => match ct_type.precision {
+                    Precision::FheUint8 => {
+                        let ct: CompactFheUint8List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                    Precision::FheUint16 => {
+                        let ct: CompactFheUint16List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                    Precision::FheUint32 => {
+                        let ct: CompactFheUint32List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                    Precision::FheUint64 => {
+                        let ct: CompactFheUint64List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                    Precision::FheUint128 => {
+                        let ct: CompactFheUint128List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                    Precision::FheUint256 => {
+                        let ct: CompactFheUint256List =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        let expanded_ct = ct.expand();
+                        plaintext = expanded_ct[0].decrypt(&cks);
+                    }
+                },
+                Format::Expanded => match ct_type.precision {
+                    Precision::FheUint8 => {
+                        let ct: FheUint8 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                    Precision::FheUint16 => {
+                        let ct: FheUint16 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                    Precision::FheUint32 => {
+                        let ct: FheUint32 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                    Precision::FheUint64 => {
+                        let ct: FheUint64 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                    Precision::FheUint128 => {
+                        let ct: FheUint128 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                    Precision::FheUint256 => {
+                        let ct: FheUint256 =
+                            bincode::deserialize(&ct_bytes).expect("ciphertext deserialization");
+                        plaintext = ct.decrypt(&cks);
+                    }
+                },
+            }
             println!("Decryption result: {plaintext}");
         }
     }
