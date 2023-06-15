@@ -500,7 +500,7 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 [[package]]
 name = "tfhe"
 version = "0.3.0"
-source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=189f02b696acad96ac18e6549714d64e4031a795#189f02b696acad96ac18e6549714d64e4031a795"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=1d817c45d5234bcf33638406191b656998b30c2a#1d817c45d5234bcf33638406191b656998b30c2a"
 dependencies = [
  "aligned-vec",
  "bytemuck",
