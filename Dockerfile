@@ -10,4 +10,4 @@ RUN apt-get install libc6 -y
 COPY  --from=builder /usr/local/app/zbc-fhe-tool/target/release/zbc-fhe /usr/local/bin
 ENV RUST_LOG=info
 
-CMD ["zbc-fhe"]
+CMD ["zbc-fhe-tool"]
