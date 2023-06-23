@@ -4,6 +4,30 @@ The ZBC FHE tool allows developers to use __tfhe-rs__ features through a user-fr
 
 This tool could be used locally or through a docker image.
 
+# Quick start
+
+If you want to generate Fhe keys for your evmos node:
+
+On x86:
+```bash
+$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.0 zbc-fhe-tool  generate-keys -d res
+```
+
+On arm64:
+```bash
+$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.0-arm64 zbc-fhe-tool  generate-keys -d res
+```
+
+Typical output:
+```bash
+# Generating FHE keys in res
+# Generated cks size: 41130 bytes
+# Generated sks size: 100729006 bytes
+# Generated pks size: 16553 bytes
+$> ls res
+# cks  pks  sks
+```
+
 # Running operations
 
 Make sure you either have Docker or the Rust toolchain installed on your host machine.
@@ -11,7 +35,7 @@ Make sure you either have Docker or the Rust toolchain installed on your host ma
 Please replace `ZBC_FHE_TOOL` with either:
  * "`cargo run --features tfhe/aarch64-unix --release -- `" - for ARM CPUs when running locally on the host
  * "`cargo run --features tfhe/x86_64-unix --release -- `" - for x86 CPUs when running locally on the host
- * "`docker run -v LOCAL_DIR:/zbc-fhe-output ghcr.io/zama-ai/zbc-fhe-tool:TAG zbc-fhe`"
+ * "`docker run -v $LOCAL_DIR:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:$TAG zbc-fhe-tool`"
     * replace LOCAL_DIR with a local directory of choice in order to persist output from the tool when using Docker
     * replace TAG with a known tagged version
 
@@ -25,6 +49,7 @@ ZBC_FHE_TOOL help
 ## Key generation
 
 ```bash
+mkdir -p /path/to/keys/directory
 ZBC_FHE_TOOL generate-keys -d /path/to/keys/directory
 ```
 
