@@ -1,6 +1,6 @@
 [package]
 name = "zbc-fhe-tool"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Zama <hello@zama.ai>"]
 edition = "2021"
 license = "Unlicense"
@@ -12,4 +12,4 @@ publish = false
 bincode = "1.3.3"
 clap = { version = "3.1.18", features = ["derive"] }
 serde = "1.0"
-tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "1d817c45d5234bcf33638406191b656998b30c2a", features = ["boolean", "experimental-force_fft_algo_dif4", "shortint", "integer"] }
+tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "0.3.0-beta.0", features = ["boolean", "experimental-force_fft_algo_dif4", "shortint", "integer"] }
