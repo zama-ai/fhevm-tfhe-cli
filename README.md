@@ -6,16 +6,16 @@ This tool could be used locally or through a docker image.
 
 # Quick start
 
-If you want to generate Fhe keys for your evmos node:
+If you want to generate fhe keys for your evmos node:
 
 On x86:
 ```bash
-$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.0 zbc-fhe-tool  generate-keys -d res
+$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.1 zbc-fhe-tool  generate-keys -d res
 ```
 
 On arm64:
 ```bash
-$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.0-arm64 zbc-fhe-tool  generate-keys -d res
+$> mkdir -p res && docker run -v $PWD:/usr/local/app ghcr.io/zama-ai/zbc-fhe-tool:v0.1.1-arm64 zbc-fhe-tool  generate-keys -d res
 ```
 
 Typical output:

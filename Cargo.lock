@@ -499,8 +499,8 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 
 [[package]]
 name = "tfhe"
-version = "0.3.0"
-source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=1d817c45d5234bcf33638406191b656998b30c2a#1d817c45d5234bcf33638406191b656998b30c2a"
+version = "0.3.0-beta.0"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=0.3.0-beta.0#e810b42eb610b84a544c402fff5fcd4ee789235b"
 dependencies = [
  "aligned-vec",
  "bytemuck",
@@ -566,7 +566,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "zbc-fhe-tool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bincode",
  "clap",
