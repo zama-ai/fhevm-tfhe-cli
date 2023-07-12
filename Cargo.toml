@@ -1,11 +1,11 @@
 [package]
-name = "zbc-fhe-tool"
+name = "fhevm-tfhe-cli"
 version = "0.1.1"
 authors = ["Zama <hello@zama.ai>"]
 edition = "2021"
 license = "Unlicense"
-homepage = "https://github.com/zama-ai/zbc-fhe-tool"
-repository = "https://github.com/zama-ai/zbc-fhe-tool"
+homepage = "https://github.com/zama-ai/fhevm-tfhe-cli"
+repository = "https://github.com/zama-ai/fhevm-tfhe-cli"
 publish = false
 
 [dependencies]
