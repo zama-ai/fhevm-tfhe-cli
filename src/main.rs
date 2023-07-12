@@ -2,9 +2,9 @@ use std::{fs::File, io::Read};
 
 use clap::{Parser, Subcommand};
 
+use fhevm_tfhe_cli::ciphertext_types::{CiphertextTypeRepo, Format, Precision};
+use fhevm_tfhe_cli::gen_keys::gen_keys;
 use tfhe::{FheUint128, FheUint16, FheUint256, FheUint32, FheUint64, FheUint8};
-use zbc_fhe_tool::ciphertext_types::{CiphertextTypeRepo, Format, Precision};
-use zbc_fhe_tool::gen_keys::gen_keys;
 
 use std::fs::write;
 
