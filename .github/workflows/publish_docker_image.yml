@@ -1,21 +1,21 @@
-name: Publish zbc-fhe tool
+name: Publish fhevm-tfhe-cli
 
 on: 
   workflow_dispatch:
     inputs:
-      zbc_fhe_tool_tag:
-        description: 'Zbc-fhe tool docker image tag (default: latest)'
+      fhevm_tfhe_cli_tag:
+        description: 'fhEVM-TFHE-CLI tool docker image tag (default: latest)'
         default: 'latest'
         type: string
         required: true
-      ref_to_build_zbc_fhe:
-        description: 'Branch, tag or commit SHA1 to checkout Zbc-fhe (build)'
+      ref_to_build_fhevm_tfhe_cli:
+        description: 'Branch, tag or commit SHA1 to checkout fhEVM-TFHE-CLI (build)'
         required: true
         default: "main"
         type: string
 
 env:
-  DOCKER_IMAGE: ghcr.io/zama-ai/zbc-fhe-tool
+  DOCKER_IMAGE: ghcr.io/zama-ai/fhevm-tfhe-cli
   
 
 jobs:
@@ -24,11 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Check out zbc-fhe-tool
+      - name: Check out fhevm-tfhe-cli
         uses: actions/checkout@v3
         with:
-          repository: zama-ai/zbc-fhe-tool
-          ref: ${{ inputs.ref_to_build_zbc_fhe }}
+          repository: zama-ai/fhevm-tfhe-cli
+          ref: ${{ inputs.ref_to_build_fhevm_tfhe_cli }}
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
@@ -54,5 +54,5 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:${{ inputs.zbc_fhe_tool_tag }},${{ env.DOCKER_IMAGE }}:latest
-          labels: zbc-fhe-tool
+          tags: ${{ env.DOCKER_IMAGE }}:${{ inputs.fhevm_tfhe_cli_tag }},${{ env.DOCKER_IMAGE }}:latest
+          labels: fhevm-tfhe-cli
