@@ -67,6 +67,7 @@ FHEVM_TFHE_CLI public-encrypt-integer32 -c ./ciphertext -p /path/to/keys/directo
 FHEVM_TFHE_CLI decrypt-ciphertext -c ./ciphertext -s /path/to/keys/directory/cks
 ```
 
+<!--
 # Using published Docker images
 
 One needs to login to ghcr.io to download the published image.
@@ -82,3 +83,4 @@ One needs to login to ghcr.io to download the published image.
 ![PAT](./resources/PAT_github_packages.png)
 </details>
 <br />
+-->
