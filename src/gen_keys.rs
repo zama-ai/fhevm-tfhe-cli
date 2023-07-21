@@ -1,3 +1,8 @@
+// BSD 3-Clause Clear License
+//
+// Copyright © 2023 ZAMA.
+// All rights reserved.
+
 use tfhe::{
     generate_keys, shortint::parameters::PARAM_SMALL_MESSAGE_2_CARRY_2_COMPACT_PK, ClientKey,
     CompactPublicKey, ConfigBuilder, ServerKey,
