@@ -1,3 +1,8 @@
+// BSD 3-Clause Clear License
+//
+// Copyright © 2023 ZAMA.
+// All rights reserved.
+
 use std::{fs::File, io::Read};
 
 use clap::{Parser, Subcommand};
