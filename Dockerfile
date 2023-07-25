@@ -1,8 +1,8 @@
-FROM rust:1.67 as builder
+FROM rust:1.70 as builder
 
 WORKDIR /usr/local/app/fhevm-tfhe-cli
 ADD . .
-RUN cargo build --release --features tfhe/$(./scripts/get_arch.sh)
+RUN cargo build --release --features tfhe/seeder_unix
 
 FROM debian:bullseye-slim
 WORKDIR /usr/local/app
