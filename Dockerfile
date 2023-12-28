@@ -4,7 +4,7 @@ WORKDIR /usr/local/app/fhevm-tfhe-cli
 ADD . .
 RUN cargo build --release --features tfhe/seeder_unix
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 WORKDIR /usr/local/app
 RUN apt-get install libc6 -y
 COPY  --from=builder /usr/local/app/fhevm-tfhe-cli/target/release/fhevm-tfhe-cli /usr/local/bin
