@@ -13,6 +13,7 @@ Tags:
 
 * v0.2.1: based on tfhe-rs 0.3.1
 * v0.2.2: based on tfhe-rs 0.4.0
+* v0.2.3: based on tfhe-rs 0.4.1
 
 # Build
 
@@ -25,7 +26,7 @@ cargo build --features tfhe/x86_64-unix --release
 cargo build --features tfhe/aarch64-unix --release
 ```
 
-# Docker
+## Docker
 ```
 docker build -t fhevm-tfhe-cli:latest .
 ```
