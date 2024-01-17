@@ -118,7 +118,7 @@ dependencies = [
 [[package]]
 name = "concrete-csprng"
 version = "0.4.0"
-source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.0#4a00d25cb18c6580a0998f9d409f7c24cd7c06f2"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.1#2f4d00b13a4bce89ca4990365effc5ea6e66bb2d"
 dependencies = [
  "aes",
  "libc",
@@ -219,7 +219,7 @@ checksum = "7fcaabb2fef8c910e7f4c7ce9f67a1283a1715879a7c230ca9d6d1ae31f16d91"
 
 [[package]]
 name = "fhevm-tfhe-cli"
-version = "0.1.1"
+version = "0.2.3"
 dependencies = [
  "bincode",
  "clap",
@@ -515,8 +515,8 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 
 [[package]]
 name = "tfhe"
-version = "0.4.0"
-source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.0#4a00d25cb18c6580a0998f9d409f7c24cd7c06f2"
+version = "0.4.1"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.1#2f4d00b13a4bce89ca4990365effc5ea6e66bb2d"
 dependencies = [
  "aligned-vec",
  "bytemuck",
