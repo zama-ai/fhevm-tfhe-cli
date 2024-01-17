@@ -117,9 +117,8 @@ dependencies = [
 
 [[package]]
 name = "concrete-csprng"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d821845d1b3262c10d74341a7e1fa4c287bedd30d192a0df51ef780b6901830e"
+version = "0.4.0"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.0#4a00d25cb18c6580a0998f9d409f7c24cd7c06f2"
 dependencies = [
  "aes",
  "libc",
@@ -128,15 +127,15 @@ dependencies = [
 
 [[package]]
 name = "concrete-fft"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ab720f85aa80be9d78fba5a941458ec50d97c7856aced76707f0bf227a0c6ca"
+checksum = "cdb823cf0c7a83ac8f7e38bcda73d754fb8f57797f342cdd7c20a61a1db8b058"
 dependencies = [
  "aligned-vec",
  "bytemuck",
  "dyn-stack",
  "num-complex",
- "pulp",
+ "pulp 0.11.11",
  "serde",
 ]
 
@@ -286,9 +285,9 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.10.5"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
 dependencies = [
  "either",
 ]
@@ -399,6 +398,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulp"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50ff10f8f3224a1cab64371fbab0fff9b9cb5892076eb9032dc825c2e50894e4"
+dependencies = [
+ "bytemuck",
+ "num-complex",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -506,8 +515,8 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 
 [[package]]
 name = "tfhe"
-version = "0.3.1"
-source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=0.3.1#c58b0a3f6884e2af3110fd24505eb2f8bdb74ddb"
+version = "0.4.0"
+source = "git+https://github.com/zama-ai/tfhe-rs.git?rev=tfhe-rs-0.4.0#4a00d25cb18c6580a0998f9d409f7c24cd7c06f2"
 dependencies = [
  "aligned-vec",
  "bytemuck",
@@ -515,9 +524,8 @@ dependencies = [
  "concrete-fft",
  "dyn-stack",
  "itertools",
- "once_cell",
  "paste",
- "pulp",
+ "pulp 0.13.2",
  "rayon",
  "serde",
 ]

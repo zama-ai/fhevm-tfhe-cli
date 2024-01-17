@@ -4,6 +4,16 @@ The TFHE-CLI tool allows developers to use __tfhe-rs__ features through a user-f
 
 This tool can be used locally or through a docker image.
 
+
+# Docker images versioning
+
+Registry and image name: docker pull ghcr.io/zama-ai/fhevm-tfhe-cli
+
+Tags:
+
+* v0.2.1: based on tfhe-rs 0.3.1
+* v0.2.2: based on tfhe-rs 0.4.0
+
 # Build
 
 ## Local
