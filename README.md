@@ -14,6 +14,7 @@ Tags:
 * v0.2.1: based on tfhe-rs 0.3.1
 * v0.2.2: based on tfhe-rs 0.4.0
 * v0.2.3: based on tfhe-rs 0.4.1
+* v0.2.4: based on tfhe-rs 0.5.1
 
 # Build
 
