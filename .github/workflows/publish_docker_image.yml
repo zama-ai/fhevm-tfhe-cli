@@ -1,22 +1,11 @@
 name: Publish fhevm-tfhe-cli
 
-on: 
-  workflow_dispatch:
-    inputs:
-      fhevm_tfhe_cli_tag:
-        description: 'fhEVM-TFHE-CLI tool docker image tag (default: latest)'
-        default: 'latest'
-        type: string
-        required: true
-      ref_to_build_fhevm_tfhe_cli:
-        description: 'Branch, tag or commit SHA1 to checkout fhEVM-TFHE-CLI (build)'
-        required: true
-        default: "main"
-        type: string
+on:
+  release:
+    types: [published]
 
 env:
   DOCKER_IMAGE: ghcr.io/zama-ai/fhevm-tfhe-cli
-  
 
 jobs:
   push_to_registry:
@@ -28,7 +17,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: zama-ai/fhevm-tfhe-cli
-          ref: ${{ inputs.ref_to_build_fhevm_tfhe_cli }}
       
       - name: Login to GitHub Container Registry
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
@@ -37,7 +25,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      
+      - name: Docker tag
+        run: |
+          echo ${{ github.event.release.tag_name }}
       - name: Check OS
         run: |
           lscpu
@@ -60,5 +50,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: Dockerfile
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:${{ inputs.fhevm_tfhe_cli_tag }},${{ env.DOCKER_IMAGE }}:latest
+          tags: ${{ env.DOCKER_IMAGE }}:${{ github.event.release.tag_name }},${{ env.DOCKER_IMAGE }}:latest
           labels: fhevm-tfhe-cli
