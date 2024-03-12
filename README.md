@@ -28,6 +28,15 @@ cargo build --features tfhe/aarch64-unix --release
 ```
 
 ## Docker
+
+Either download latest image:
+
+```
+docker pull ghcr.io/zama-ai/fhevm-tfhe-cli:latest
+```
+
+or build it locally:
+
 ```
 docker build -t fhevm-tfhe-cli:latest .
 ```
@@ -39,7 +48,7 @@ Make sure you either have Docker or the Rust toolchain installed on your host ma
 Please replace `FHEVM_TFHE_CLI` with either:
  * "`cargo run --features tfhe/aarch64-unix --release -- `" - for ARM CPUs when running locally on the host
  * "`cargo run --features tfhe/x86_64-unix --release -- `" - for x86 CPUs when running locally on the host
- * "`docker run -v $LOCAL_DIR:/usr/local/app fhevm-tfhe-cli:latest fhevm-tfhe-cli`"
+ * "`docker run -v $LOCAL_DIR:/usr/local/app ghcr.io/zama-ai/fhevm-tfhe-cli:latest fhevm-tfhe-cli`"
     * replace LOCAL_DIR with a local directory of choice in order to persist output from the tool when using Docker
 
 For more information on Docker, see below.
@@ -55,6 +64,12 @@ FHEVM_TFHE_CLI help
 mkdir -p /path/to/keys/directory
 FHEVM_TFHE_CLI generate-keys -d /path/to/keys/directory
 ```
+
+It will generate 3 keys in `/path/to/keys/directory`:
+
+* `cks`: the private key, used for data decryption, that should never be shared publicly.
+* `pks`: the public key, used for data encryption, that could be shared publicly.
+* `sks`: the evaluation key, used for performing operations, that could be shared publicly.
 
 ## Public encryption
 
@@ -80,7 +95,7 @@ One needs to login to ghcr.io to download the published image.
   <summary>How to login into Zama github packages</summary>
 <br />
 
-1. Create a PAT (Personnal Access token) in github **developer settings** with a read (write if necessary) access to Zama github registry. 
+1. Create a PAT (Personal Access token) in github **developer settings** with a read (write if necessary) access to Zama github registry.
 2. Execute docker login ghcr.io with your **github account name** and the **newly created PAT**.
 
 ![PAT](./resources/PAT_github_packages.png)
